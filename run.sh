@@ -65,7 +65,7 @@ run_one() {
     return
   fi
   total=$((total+1))
-  out="$($runtest "$t" 2>&1)" || {
+  out="$($runtest -t 60 "$t" 2>&1)" || {
     failed=$((failed+1))
     echo "FAIL $t"
     [ -n "$out" ] && echo "$out"
