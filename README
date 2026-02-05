@@ -1,105 +1,94 @@
-libc-test is developed as part of the musl project
-http://www.musl-libc.org/
+# libc-test for xkernel (aarch64)
 
-configuring:
-	cp config.mak.def config.mak
-	edit config.mak
-build and run tests:
-	make
-clean up:
-	make clean
+## 配置
 
-make builds all test binaries and runs them to create
-a REPORT file that contains all build and runtime errors
-(this means that make does not stop at build failures)
+### 1. 复制配置模板
+```bash
+cp config.mak.def config.mak
+```
 
-contributing tests:
+### 2. 编辑 config.mak
+根据您的工具链修改 `CROSS_COMPILE` 变量：
 
-design goals:
+```makefile
+# 如果使用 musl 工具链（在 PATH 中）
+CROSS_COMPILE = aarch64-linux-musl-
 
-- tests should be easy to run and build even a single test in isolation
-(so test should be self contained if possible)
-- failure of one test should not interfere with others
-(build failure, crash or unexpected results are all failures)
-- test output should point to the cause of the failure
-- test results should be robust
-- the test system should have minimal dependency
-(libc, posix sh, gnu make)
-- the test system should run on all archs and libcs
-- tests should leave the system in a clean state
 
-conventions:
+# 如果工具链不在 PATH 中，使用完整路径
+CROSS_COMPILE = /path/to/aarch64-linux-musl-cross/bin/aarch64-linux-musl-
+```
 
-each test is in a separate file at a path like src/directory/file.c with
-its own main
+## 编译
 
-the test should return 0 on success and non-0 on failure, on failure it
-should print error messages to standard out if possible, on success no
-message should be printed
+```bash
+make clean
+make -j$(nproc)
+```
 
-to help with the above test protocol use t_error function for printing
-errors and return t_status from main, see src/common/test.h
-(t_error allows standard printf formatting, outputs at most 512bytes
-in a single write call to fd 1, so there is no buffering, long outputs
-are truncated, it sets the global t_status to 1)
 
-it is common to do many similar checks in a test, in such cases macros
-may be used to simplify the code like
-#define T1(a,b) (check(a,b) || (t_error("check(%s,%s) failed\n", a, b),0))
-#define T2(f,w) (result=(f), result==(w) || (t_error("%s failed: got %s, want %s\n", #f, result, w),0))
+## 部署到 xkernel
 
-binaries should be possible to run from arbitrary directory.
-the build system runs the tests using the src/common/runtest tool which
-kills the test process after a timeout and reports the exit status
-in case of failure
+### 自动部署（推荐）
+```bash
+# 确保 xkernel 的 disk.img 路径正确
+# 默认路径：/home/yean/x-kernel/disk.img
+# 如需修改，编辑 deploy.sh 中的 DISK_IMG 变量
 
-directories:
+./deploy.sh
+```
 
-src/api: interface tests, build time include header tests
-src/common: common utilities compiled into libtest.a
-src/functional: functional tests aiming for large coverage of libc
-src/math: tests for each math function with input-output test vectors
-src/regression: regression tests aiming for testing particular bugs
+### 手动部署
+```bash
+# 挂载 disk.img
+sudo mkdir -p /tmp/xkernel-mount
+sudo mount -o loop /path/to/xkernel/disk.img /tmp/xkernel-mount
 
-initial set of functional tests are derived from the libc-testsuit of
-Rich Felker, regression tests should contain reference of the bug
-(musl commit hash, glibc bug tracker url, etc)
+# 创建目录
+sudo mkdir -p /tmp/xkernel-mount/libc-test/src/{functional,math,regression,common}
 
-build system:
+# 复制测试文件
+sudo cp src/functional/*.exe /tmp/xkernel-mount/libc-test/src/functional/
+sudo cp src/math/*.exe /tmp/xkernel-mount/libc-test/src/math/
+sudo cp src/regression/*.exe /tmp/xkernel-mount/libc-test/src/regression/
+sudo cp src/common/runtest.exe /tmp/xkernel-mount/libc-test/src/common/
+sudo cp run.sh /tmp/xkernel-mount/libc-test/run
 
-the main non-file make targets are all, run, clean and cleanall.
-(cleanall removes the reports unlike clean, run reruns the dynamically
-linked executables)
+# 设置权限
+sudo chmod -R 755 /tmp/xkernel-mount/libc-test/
 
-make variable can be overridden from config.mak or the make command line,
-the variable B sets the build directory which is src by default
+# 同步并卸载
+sync && sudo sync
+sudo umount /tmp/xkernel-mount
+```
 
-for each directory under src there are targets like $(B)/directory/all,
-$(B)/directory/run and $(B)/directory/clean to make only the contents
-of that directory, each directory has its own Makefile set up so it
-invokes the top level make with B=src src/directory/foo for the foo
-target, so it is possible to work only under a specific test directory
+## 在 xkernel 中运行测试
 
-the build and runtime errors of each target are accumulated into a
-target.err file and in the end they are concatenated into a REPORT
+### 启动 xkernel
+```bash
+cd /path/to/xkernel
+make run
+```
 
-each .c file in src/functional and src/regression are built into a
-dynamic linked and a static linked executable test binary by default,
-this behaviour can be changed by a similarly named .mk file changing
-make variables and specifying additional rules:
+### 运行测试
 
-$(B)/$(N) is the name of the binary target (the file name without the .c)
-$(B)/$(N)-static is the name of the static binary target
-$(B)/$(D) is the build directory
-$(N).CFLAGS are added to the CFLAGS at compilation
-$(N).LDFLAGS are added to the LDFLAGS at linking
-$(N).LDLIBS are added to the LDLIBS at linking
-$(N).BINS are the targets (if empty no binaries are built)
-$(N).LIBS are the non-executable targets (shared objects may use it)
+**方法 1：单个测试**
+```bash
+cd /libc-test/src/functional
+./string-static.exe && echo PASS || echo FAIL
+./snprintf-static.exe && echo PASS || echo FAIL
+```
 
-if a binary is linked together from several .o files then they
-have to be specified as prerequisits for the binary targets and
-added to the $(N).LDLIBS as well
 
-if a binary depends on a file at runtime (eg. a .so opened by dlopen)
-then the $(N).err target should depend on that file
+**方法 2：使用 run 脚本**
+```bash
+cd /libc-test
+./run src/functional/string-static.exe
+```
+
+## 测试分类
+
+- **src/functional/** - 功能测试（70+ 个，字符串、I/O、线程等）
+- **src/math/** - 数学函数测试（150+ 个，三角、指数、对数等）
+- **src/regression/** - 回归测试（100+ 个，已知 bug 验证）
+
