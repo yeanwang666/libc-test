@@ -1,7 +1,9 @@
 *.err
 *.o
+*.lo
 *.so
 *.a
 *.exe
 config.mak
 REPORT
+src/common/options.h
