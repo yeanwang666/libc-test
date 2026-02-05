@@ -24,7 +24,7 @@ sudo cp src/musl/*.exe "$MOUNT_POINT/libc-test/src/musl/" 2>/dev/null || true
 sudo cp src/common/runtest.exe "$MOUNT_POINT/libc-test/src/common/"
 
 # 复制 run 脚本
-sudo cp run.sh "$MOUNT_POINT/libc-test/run"
+sudo cp run-x86.sh "$MOUNT_POINT/libc-test/run-x86"
 
 # 设置权限
 sudo chmod -R 755 "$MOUNT_POINT/libc-test/"
@@ -38,7 +38,7 @@ echo "  musl: $(ls "$MOUNT_POINT/libc-test/src/musl/"*.exe 2>/dev/null | wc -l) 
 # 同步并卸载
 sync
 sudo sync
-sleep 4
+sleep 8
 sudo umount "$MOUNT_POINT"
 
 echo "✓ 部署完成！"
@@ -47,4 +47,4 @@ echo "使用方法:"
 echo "  cd /home/yean/x-kernel && make run"
 echo "  进入虚拟机后："
 echo "    cd /libc-test"
-echo "    ./run src/functional static"
+echo "    ./run-x86 src/functional static"

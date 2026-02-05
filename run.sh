@@ -46,7 +46,8 @@ raise-race.exe raise-race-static.exe \
 sigaltstack.exe sigaltstack-static.exe \
 setenv-oom.exe setenv-oom-static.exe \
 strptime.exe strptime-static.exe \
-tls_get_new-dtv.exe"
+tls_get_new-dtv.exe \
+powf.exe"
 
 is_skipped() {
   for p in $SKIP_PATTERNS; do
