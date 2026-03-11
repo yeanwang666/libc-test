@@ -49,7 +49,10 @@ strptime.exe strptime-static.exe \
 tls_get_new-dtv.exe tls_get_new-dtv-static.exe \
 powf.exe powf-static.exe \
 vfork.exe vfork-static.exe \
-crypt.exe crypt-static.exe"
+crypt.exe crypt-static.exe \
+fma.exe fma-static.exe \
+fmal.exe fmal-static.exe \
+remquol.exe remquol-static.exe"
 
 is_skipped() {
   for p in $SKIP_PATTERNS; do
