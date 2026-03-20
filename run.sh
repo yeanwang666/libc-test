@@ -47,6 +47,7 @@ sigaltstack.exe sigaltstack-static.exe \
 setenv-oom.exe setenv-oom-static.exe \
 strptime.exe strptime-static.exe \
 tls_get_new-dtv.exe \
+dlopen.exe tls_init_dlopen.exe tls_align_dlopen.exe \
 powf.exe"
 
 is_skipped() {
