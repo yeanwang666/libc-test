@@ -18,8 +18,10 @@ sudo mkdir -p "$MOUNT_POINT/libc-test/src"/{functional,math,regression,common,mu
 # 复制测试文件
 echo "复制测试文件..."
 sudo cp src/functional/*.exe "$MOUNT_POINT/libc-test/src/functional/" 2>/dev/null || true
+sudo cp src/functional/*.so "$MOUNT_POINT/libc-test/src/functional/" 2>/dev/null || true
 sudo cp src/math/*.exe "$MOUNT_POINT/libc-test/src/math/" 2>/dev/null || true
 sudo cp src/regression/*.exe "$MOUNT_POINT/libc-test/src/regression/" 2>/dev/null || true
+sudo cp src/regression/*.so "$MOUNT_POINT/libc-test/src/regression/" 2>/dev/null || true
 sudo cp src/musl/*.exe "$MOUNT_POINT/libc-test/src/musl/" 2>/dev/null || true
 sudo cp src/common/runtest.exe "$MOUNT_POINT/libc-test/src/common/"
 
