@@ -47,7 +47,6 @@ sigaltstack.exe sigaltstack-static.exe \
 setenv-oom.exe setenv-oom-static.exe \
 strptime.exe strptime-static.exe \
 tls_get_new-dtv.exe tls_get_new-dtv-static.exe \
-dlopen.exe tls_init_dlopen.exe tls_align_dlopen.exe \
 powf.exe powf-static.exe \
 vfork.exe vfork-static.exe \
 crypt.exe crypt-static.exe \
