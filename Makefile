@@ -5,7 +5,7 @@ LOBJS:=$(SRCS:src/%.c=$(B)/%.lo)
 DIRS:=$(patsubst src/%/,%,$(sort $(dir $(SRCS))))
 BDIRS:=$(DIRS:%=$(B)/%)
 NAMES:=$(SRCS:src/%.c=%)
-CFLAGS:=-I$(B)/common -Isrc/common
+CFLAGS:=-I$(B)/common -Isrc/common -fstack-protector-all -fPIE -Wl,-z,now
 LDLIBS:=$(B)/common/libtest.a
 AR = $(CROSS_COMPILE)ar
 RANLIB = $(CROSS_COMPILE)ranlib
@@ -137,7 +137,7 @@ $(B)/%.so: $(B)/%.lo
 $(B)/%-static.exe: $(B)/%.o
 	$(CC) -static $(LDFLAGS) $($*-static.LDFLAGS) -o $@ $(sort $< $($*-static.OBJS)) $(LDLIBS) $($*-static.LDLIBS) 2>$@.ld.err || echo BUILDERROR $@; cat $@.ld.err
 $(B)/%.exe: $(B)/%.o
-	$(CC) $(LDFLAGS) $($*.LDFLAGS) -o $@ $(sort $< $($*.OBJS)) $(LDLIBS) $($*.LDLIBS) 2>$@.ld.err || echo BUILDERROR $@; cat $@.ld.err
+	$(CC) -pie $(LDFLAGS) $($*.LDFLAGS) -o $@ $(sort $< $($*.OBJS)) $(LDLIBS) $($*.LDLIBS) 2>$@.ld.err || echo BUILDERROR $@; cat $@.ld.err
 
 %.o.err: %.o
 	touch $@
